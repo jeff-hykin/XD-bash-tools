@@ -1,0 +1,65 @@
+#!/usr/bin/ruby
+show_hidden = false 
+if ARGV.length == 1
+    if ARGV[0] = "h" or ARGV[0] = "hidden"
+        show_hidden = true
+    end#if 
+end#if
+
+if show_hidden
+    stuff = `ls -L -p -v -a | xargs stat --printf "%U:%G:%A:%n\\n"`
+else 
+    stuff = `ls -L -p -v -a | xargs stat --printf "%U:%G:%A:%n\\n"`
+end#if 
+
+my_user_name = `whoami`.chomp
+my_groups = (`groups`.chomp).split(" ")
+regex_for_ls = /(?<Owner>[^:\t\n]+):(?<Group>[^:\t\n]+):(?<Flag>.)(?<OwnerR>.)(?<OwnerW>.)(?<OwnerX>.)(?<GroupR>.)(?<GroupW>.)(?<GroupX>.)(?<EveryR>.)(?<EveryW>.)(?<EveryX>.)(?<PermissionFlag>.?):(?<Name>(.+?\/?$|.+))/
+
+# folders 
+    folders = stuff.gsub(/.*[^\/]\n/,"") # remove all lines that dont end with /    
+    folder_output = ""
+    # only show folders that you can at least go into (execute)
+    for each in folders.split("\n")
+        item = each.match regex_for_ls
+        # check if everyone can execute
+        if item["EveryX"] != '-'
+            folder_output << '    '+item["Name"] + "\n"
+        # check if i own the file
+        elsif item["Owner"] == my_user_name
+            if item["OwnerX"] != "-"
+                folder_output << '    '+item["Name"] + "\n"
+            end#if 
+        # check if its one of my groups
+        elsif  my_groups.include? item["Group"]
+            if item["GroupX"] != "-"
+                folder_output << '    '+item["Name"] + "\n"
+            end#if
+        end#if
+    end#for
+
+
+# files
+    files   = stuff.gsub(/.*\/\n/,"")      # remove all lines that end with /
+    file_output = ""
+    for each in files.split("\n")
+        item = each.match regex_for_ls
+        # check if everyone can execute
+        if item["EveryX"] != '-' or item["EveryR"] != "-" or item["EveryW"] != "-"
+            file_output << '    '+item["Name"] + "\n"
+        # check if i own the file
+        elsif item["Owner"] == my_user_name
+            if item["OwnerX"] != "-" or item["OwnerR"] != "-" or item["OwnerW"] != "-"
+                file_output << '    '+item["Name"] + "\n"
+            end#if 
+        # check if its one of my groups
+        elsif  my_groups.include? item["Group"]
+            if item["GroupX"] != "-" or item["GroupR"] != "-" or item["GroupW"] != "-"
+                file_output << '    '+item["Name"] + "\n"
+            end#if
+        end#if
+    end#for
+puts "\nFolders"
+puts folder_output
+puts "Files"
+puts file_output
