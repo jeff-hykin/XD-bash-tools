@@ -1,7 +1,14 @@
-# Sub
-Its like sed, but modern and simple. It uses ruby regular expressions to make replacements. When given 1 argument it functions like grep.
+# What
+These are some tools that make the basics of bash easier. For example 'show' is a more readable form of ls and 'sub' is a more friendly version of sed.
 
-### examples
+
+### show
+Just type 'show' in any directory and it will show files/folders and links.
+
+### sub
+Uses ruby regular expressions to make replacements. When given 1 argument it functions like grep.
+
+##### examples
 `echo "hello" | sub 'e' 'a'`<br>
 \>>> `hallo`<br>
 <br>
@@ -10,4 +17,4 @@ If there is a file 'test.txt' with `hello world` in it then<br>
 would change the contents of test.txt to `hello internet` 
 
 # Installation 
-Make sure you have ruby installed. Then put the 'sub' file somewhere in your path, ex: /usr/bin
+Make sure you have ruby installed. Then put the 'sub' and 'show' file somewhere in your path, ex: /usr/bin, then make sure you have permission to execute that file, and that no one has permission to edit the file. 
