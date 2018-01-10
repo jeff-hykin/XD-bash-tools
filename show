@@ -7,14 +7,17 @@ if ARGV.length == 1
 end#if
 
 if show_hidden
-    stuff = `ls -L -p -v -a | xargs stat --printf "%U:%G:%A:%n\\n"`
+    stuff = `ls -p -v -l -a`
 else 
-    stuff = `ls -L -p -v -a | xargs stat --printf "%U:%G:%A:%n\\n"`
+    stuff = `ls -p -v -l`
 end#if 
+# remove the "total 500" line 
+stuff.sub!( /\Atotal \d+\n/, "")
 
 my_user_name = `whoami`.chomp
 my_groups = (`groups`.chomp).split(" ")
-regex_for_ls = /(?<Owner>[^:\t\n]+):(?<Group>[^:\t\n]+):(?<Flag>.)(?<OwnerR>.)(?<OwnerW>.)(?<OwnerX>.)(?<GroupR>.)(?<GroupW>.)(?<GroupX>.)(?<EveryR>.)(?<EveryW>.)(?<EveryX>.)(?<PermissionFlag>.?):(?<Name>(.+?\/?$|.+))/
+regex_for_ls = /(?<PermissionType>.)(?<OwnerR>.)(?<OwnerW>.)(?<OwnerX>.)(?<GroupR>.)(?<GroupW>.)(?<GroupX>.)(?<EveryR>.)(?<EveryW>.)(?<EveryX>.)(?<PermissionFlag>.?) +(?<NumberOfLinks>\d+) (?<Owner>[^:\t\n]+) +(?<Group>[^:\t\n]+) +(?<Id>) *(?<Month>...) +(?<Day>\d+) +((?<Time>\d+:\d+)|(?<Year>\d\d\d\d)) (?<Name>(.+?\/?$|.+))/
+
 
 # folders 
     folders = stuff.gsub(/.*[^\/]\n/,"") # remove all lines that dont end with /    
@@ -22,6 +25,10 @@ regex_for_ls = /(?<Owner>[^:\t\n]+):(?<Group>[^:\t\n]+):(?<Flag>.)(?<OwnerR>.)(?
     # only show folders that you can at least go into (execute)
     for each in folders.split("\n")
         item = each.match regex_for_ls
+        # make sure it matched something
+        if item == nil
+            raise "regex couldn't match:"+each
+        end#if 
         # check if everyone can execute
         if item["EveryX"] != '-'
             folder_output << '    '+item["Name"] + "\n"
@@ -44,6 +51,9 @@ regex_for_ls = /(?<Owner>[^:\t\n]+):(?<Group>[^:\t\n]+):(?<Flag>.)(?<OwnerR>.)(?
     file_output = ""
     for each in files.split("\n")
         item = each.match regex_for_ls
+        if item == nil
+            raise "regex couldn't match:"+each
+        end#if 
         # check if everyone can execute
         if item["EveryX"] != '-' or item["EveryR"] != "-" or item["EveryW"] != "-"
             file_output << '    '+item["Name"] + "\n"
