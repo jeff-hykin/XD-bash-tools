@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 if ARGV.length == 0
-    raise "When reb was used, it wasn't given any arguments to find/replace"
+    raise "When sub was used, it wasn't given any arguments to find/replace"
 # if one argument, then act like grep
 elsif ARGV.length == 1
     find = ARGV[0]
